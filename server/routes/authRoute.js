@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 
 const router = express.Router();
+const jwtSecret = process.env.JWT_SECRET;
 
 router.post("/register", async (req, res) => {
   try {
@@ -23,22 +24,18 @@ router.post("/register", async (req, res) => {
   }
 });
 
-const jwtSecret = process.env.JWT_SECRET;
 
 router.post("/login", async (req, res) => {
     try {
       const { username, password } = req.body;
-  
       const user = await User.findOne({ username });
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-  
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
-  
       const userId = user._id;
       const token = jwt.sign({ username: user.username, userId: userId }, jwtSecret);
       res.status(200).json({ token, userId });
@@ -46,6 +43,4 @@ router.post("/login", async (req, res) => {
       res.status(500).json({ message: "Error logging in" });
     }
   });
-  
-
 module.exports = router;
